@@ -1,10 +1,27 @@
-const express = require("express");
-const morgan = require("morgan");
-const cors = require("cors");
-
-const contactsRouter = require("./routes/contactsRouter.js");
+import express from "express";
+import morgan from "morgan";
+import cors from "cors";
+import mongoose from "mongoose";
+import contactsRouter from "./routes/contactsRouter.js";
+import dotenv from "dotenv";
 
 const app = express();
+dotenv.config();
+
+async function run() {
+  try {
+    await mongoose.connect(process.env.DB_URI);
+    await mongoose.connection.db.admin().command({ ping: 1 });
+    console.log("Database connection successful");
+  } catch (error) {
+    console.log(error.message);
+    process.exit(1);
+  }
+}
+run().catch(console.dir);
+mongoose.set("strictQuery", true);
+
+
 
 app.use(morgan("tiny"));
 app.use(cors());
@@ -21,6 +38,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-app.listen(3000, () => {
-  console.log("Server is running. Use our API on port: 3000");
+app.listen(process.env.PORT, () => {
+  console.log("Server is running.");
 });
