@@ -1,12 +1,12 @@
 import HttpError from "../helpers/HttpError.js";
 import ctrlWrapper from "../helpers/ctrlWrapper.js";
 import { Contact } from "../models/contactModel.js";
+import { updateContactSchema } from "../schemas/contactsSchemas.js";
 
 export const getAllContacts = ctrlWrapper(async (req, res) => {
   const contactsData = await Contact.find({});
   res.status(200).json(contactsData);
 });
-
 
 export const getOneContact = ctrlWrapper(async (req, res) => {
   const { id } = req.params;
@@ -17,16 +17,15 @@ export const getOneContact = ctrlWrapper(async (req, res) => {
   res.json(contactData);
 });
 
-export const deleteContact = ctrlWrapper(async (req, res) => {
+export const removeContact = ctrlWrapper(async (req, res) => {
   const { id } = req.params;
   const contactData = await Contact.findByIdAndDelete(id);
   if (!contactData) {
     throw HttpError(404, "Not found");
   }
-  res.json({
-    message: "Delete success",
-  });
+  res.status(200).json(contactData);
 });
+
 
 export const createContact = ctrlWrapper(async (req, res) => {
   const { name, email, phone } = req.body;
@@ -36,14 +35,23 @@ export const createContact = ctrlWrapper(async (req, res) => {
 
 export const updateContact = ctrlWrapper(async (req, res) => {
   const { id } = req.params;
-  const contactData = await Contact.findByIdAndUpdate(id, req.body, {
+  if (Object.keys(req.body).length === 0) {
+    throw HttpError(400, "Body must have at least one field");
+  }
+  const { error } = updateContactSchema.validate(req.body);
+  if (error) {
+    throw HttpError(400, error.message);
+  }
+  const updatedContact = await Contact.findByIdAndUpdate(id, req.body, {
     new: true,
   });
-  if (!contactData) {
+  if (!updatedContact) {
     throw HttpError(404, "Not found");
   }
-  res.json(result);
+  res.status(200).json(updatedContact);
 });
+
+
 
 export const updateStatusContact = ctrlWrapper(async (req, res) => {
   const { id } = req.params;
@@ -53,3 +61,5 @@ export const updateStatusContact = ctrlWrapper(async (req, res) => {
   }
   res.json(result);
 });
+
+

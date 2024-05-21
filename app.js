@@ -1,9 +1,11 @@
+// app.js
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import mongoose from "mongoose";
 import contactsRouter from "./routes/contactsRouter.js";
 import dotenv from "dotenv";
+import HttpError from "./helpers/HttpError.js";
 
 const app = express();
 dotenv.config();
@@ -19,9 +21,7 @@ async function run() {
   }
 }
 run().catch(console.dir);
-mongoose.set("strictQuery", true);
-
-
+mongoose.set("strict", true);
 
 app.use(morgan("tiny"));
 app.use(cors());
@@ -34,8 +34,11 @@ app.use((_, res) => {
 });
 
 app.use((err, req, res, next) => {
-  const { status = 500, message = "Server error" } = err;
-  res.status(status).json({ message });
+  if (err instanceof HttpError) {
+    res.status(err.status).json({ message: err.message });
+  } else {
+    next(err);
+  }
 });
 
 app.listen(process.env.PORT, () => {

@@ -2,7 +2,7 @@ import express from "express";
 import {
   getAllContacts,
   getOneContact,
-  deleteContact,
+  removeContact,
   updateContact,
   updateStatusContact,
   createContact,
@@ -22,7 +22,7 @@ contactsRouter.get("/", getAllContacts);
 
 contactsRouter.get("/:id", isValidId, getOneContact);
 
-contactsRouter.delete("/:id", isValidId, deleteContact);
+contactsRouter.delete("/:id", isValidId, removeContact);
 
 contactsRouter.post("/", validateBody(createContactSchema), createContact);
 
